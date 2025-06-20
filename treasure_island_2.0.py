@@ -31,7 +31,7 @@ def initialize_game_state():
     if 'game_won' not in st.session_state:
         st.session_state.game_won = False
     if 'health' not in st.session_state:
-        st.session_state.health = 100
+        st.session_state.health = 50
     if 'inventory' not in st.session_state:
         st.session_state.inventory = []
     if 'has_weapon' not in st.session_state:
@@ -50,7 +50,7 @@ def reset_game():
     st.session_state.game_state = 'start'
     st.session_state.game_over = False
     st.session_state.game_won = False
-    st.session_state.health = 100
+    st.session_state.health = 50
     st.session_state.inventory = []
     st.session_state.has_weapon = False
     st.session_state.has_key = False

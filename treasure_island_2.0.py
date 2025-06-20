@@ -153,6 +153,7 @@ def crossroad():
                 add_to_inventory("💧 Water bottle")
                 heal_player(10)
                 st.info("You found some food and water! You feel a bit better after eating.")
+                      st.write(st.info)
                 st.rerun()
 
         with col2:

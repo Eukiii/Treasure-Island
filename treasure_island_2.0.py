@@ -125,6 +125,60 @@ def heal_player(amount):
     st.session_state.health = min(100, st.session_state.health + amount)
     st.success(f"Healed for {amount} health!")
 
+def crossroad():
+    """Starting point of the game"""
+    display_status()
+    st.markdown("---")
+    
+    st.markdown("## The Adventure Begins")
+    st.write("""
+    You find yourself awake in a forest. The campfire has died out. You don't seem to remember where you are.
+    You look around and notice some scattered supplies near the extinguished fire.
+    You find a path and walk towards it and come to a crossroad.
+    """)
+    
+    # Check if player has searched the campsite
+    if not st.session_state.has_searched_camp:
+        st.info("💡 You notice some items scattered around the old campsite...")
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            if st.button("🔍 Search campsite", key="search_camp", use_container_width=True):
+                add_to_inventory("🍞 Bread")
+                add_to_inventory("💧 Water bottle")
+                heal_player(10)
+                st.session_state.has_searched_camp = True
+                st.rerun()
+        
+        with col2:
+            if st.button("🡸 Go Left", key="crossroad_left", use_container_width=True):
+                save_current_state()
+                st.session_state.game_state = 'beach_path'
+                st.rerun()
+        
+        with col3:
+            if st.button("🡺 Go Right", key="crossroad_right", use_container_width=True):
+                save_current_state()
+                st.session_state.game_state = 'forest_path1'
+                st.rerun()
+    else:
+        # Player already searched - show confirmation message and directions
+        st.info("✅ You found some food and water! You feel a bit better after eating.")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if st.button("🡸 Go Left", key="crossroad_left2", use_container_width=True):
+                save_current_state()
+                st.session_state.game_state = 'beach_path'
+                st.rerun()
+        
+        with col2:
+            if st.button("🡺 Go Right", key="crossroad_right2", use_container_width=True):
+                save_current_state()
+                st.session_state.game_state = 'forest_path1'
+                st.rerun()
 
 def beach_path():
     """Beach path scenario"""

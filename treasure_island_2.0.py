@@ -22,7 +22,6 @@ ____/______/______/______/______/_____"=.o|o_.--""___/______/______/______/____
 /______/______/______/______/______/______/______/______/______/______/______/_
 *******************************************************************************'''
 
-
 def initialize_game_state():
     """Initialize the game state variables"""
     if 'game_state' not in st.session_state:
@@ -57,8 +56,7 @@ def reset_game():
     st.session_state.has_key = False
     st.session_state.has_map = False
     st.session_state.previous_states = []
-	st.session_state.has_searched_camp = False
-
+    st.session_state.has_searched_camp = False
 
 def save_current_state():
     """Save current game state to history"""
@@ -75,7 +73,6 @@ def save_current_state():
     if len(st.session_state.previous_states) > 10:
         st.session_state.previous_states.pop(0)
 
-
 def go_back():
     """Restore previous game state"""
     if st.session_state.previous_states:
@@ -89,23 +86,21 @@ def go_back():
         return True
     return False
 
-
 def display_status():
     """Display player status (health and inventory)"""
     col1, col2 = st.columns(2)
-
+    
     with col1:
         # Health bar
         health_color = "🟢" if st.session_state.health > 70 else "🟡" if st.session_state.health > 30 else "🔴"
         st.markdown(f"**Health:** {health_color} {st.session_state.health}/100")
-
+    
     with col2:
         # Inventory
         if st.session_state.inventory:
             st.markdown(f"**Inventory:** {', '.join(st.session_state.inventory)}")
         else:
             st.markdown("**Inventory:** Empty")
-
 
 def take_damage(amount, reason=""):
     """Reduce player health and check for game over"""
@@ -117,92 +112,86 @@ def take_damage(amount, reason=""):
         return True
     return False
 
-
 def add_to_inventory(item):
     """Add item to inventory"""
     if item not in st.session_state.inventory:
         st.session_state.inventory.append(item)
         st.success(f"Added {item} to inventory!")
 
-
 def heal_player(amount):
     """Heal the player"""
     st.session_state.health = min(100, st.session_state.health + amount)
     st.success(f"Healed for {amount} health!")
 
-
 def crossroad():
     """Starting point of the game"""
     display_status()
     st.markdown("---")
-
+    
     st.markdown("## The Adventure Begins")
     st.write("""
     You find yourself awake in a forest. The campfire has died out. You don't seem to remember where you are.
     You look around and notice some scattered supplies near the extinguished fire.
     You find a path and walk towards it and come to a crossroad.
     """)
-
-    # First visit - let player search the campsite
-    if len(st.session_state.inventory) == 0:
-	# Check if player has searched campsite
-	if not st.session.has_seached_camp:
+    
+    # Check if player has searched the campsite
+    if not st.session_state.has_searched_camp:
         st.info("💡 You notice some items scattered around the old campsite...")
         
         col1, col2, col3 = st.columns(3)
-
+        
         with col1:
             if st.button("🔍 Search campsite", key="search_camp", use_container_width=True):
                 add_to_inventory("🍞 Bread")
                 add_to_inventory("💧 Water bottle")
                 heal_player(10)
-                st.session_state.has_searched_camp = True  #Set the flag to show updated message
-                st.rerun()  #Trigger UI refresh with updated message
-
+                st.session_state.has_searched_camp = True
+                st.rerun()
+        
         with col2:
             if st.button("🡸 Go Left", key="crossroad_left", use_container_width=True):
                 save_current_state()
                 st.session_state.game_state = 'beach_path'
                 st.rerun()
-
+        
         with col3:
             if st.button("🡺 Go Right", key="crossroad_right", use_container_width=True):
                 save_current_state()
                 st.session_state.game_state = 'forest_path1'
                 st.rerun()
     else:
-        # Player already searched - show confirmation message and direction
+        # Player already searched - show confirmation message and directions
         st.info("✅ You found some food and water! You feel a bit better after eating.")
-		
+        
         col1, col2 = st.columns(2)
-
+        
         with col1:
             if st.button("🡸 Go Left", key="crossroad_left2", use_container_width=True):
                 save_current_state()
                 st.session_state.game_state = 'beach_path'
                 st.rerun()
-
+        
         with col2:
             if st.button("🡺 Go Right", key="crossroad_right2", use_container_width=True):
                 save_current_state()
                 st.session_state.game_state = 'forest_path1'
                 st.rerun()
 
-
 def beach_path():
     """Beach path scenario"""
     display_status()
     st.markdown("---")
-
+    
     st.markdown("## The Beach")
     st.write("""
     You keep walking down the path until you reach a beautiful sandy beach. The ocean stretches endlessly before you.
     You look at the distance and see a small island not too far. The waves crash gently against the shore.
     You notice some driftwood and shells scattered along the beach.
     """)
-
+    
     col1, col2, col3 = st.columns(3)
-
+    
     with col1:
         if st.button("🏊 Swim to the island", key="beach_swim", use_container_width=True):
             if take_damage(100, "shark attack"):
@@ -211,13 +200,13 @@ def beach_path():
                 You tire out and can't stay up. The sharks come up and eat you.
                 """)
                 st.rerun()
-
+    
     with col2:
         if st.button("🚤 Look for a boat", key="beach_boat", use_container_width=True):
             save_current_state()
             st.session_state.game_state = 'boat_path'
             st.rerun()
-
+    
     with col3:
         if st.button("🔍 Search the beach", key="beach_search", use_container_width=True):
             if "🐚 Seashells" not in st.session_state.inventory:
@@ -228,33 +217,32 @@ def beach_path():
                 st.info("You've already searched this area thoroughly.")
             st.rerun()
 
-
 def forest_path1():
     """First forest path scenario"""
     display_status()
     st.markdown("---")
-
+    
     st.markdown("## The Dense Forest")
     st.write("""
     You reach a thick wooded area. Towering trees block most of the sunlight, creating an eerie atmosphere. 
     You hear strange noises within the forest - rustling, grunting, and what sounds like metal clashing.
     As you look around, you spot some mushrooms growing near a fallen log and notice a shiny object partially buried.
     """)
-
+    
     col1, col2, col3 = st.columns(3)
-
+    
     with col1:
         if st.button("🔍 Investigate the noise", key="forest_investigate", use_container_width=True):
             save_current_state()
             st.session_state.game_state = 'forest_path2'
             st.rerun()
-
+    
     with col2:
         if st.button("↩️ Go back", key="forest_back", use_container_width=True):
             save_current_state()
             st.session_state.game_state = 'crossroad'
             st.rerun()
-
+    
     with col3:
         if st.button("🍄 Examine the area", key="forest_examine", use_container_width=True):
             if "🗡️ Rusty sword" not in st.session_state.inventory:
@@ -267,23 +255,22 @@ def forest_path1():
                 st.info("You've already searched this area.")
             st.rerun()
 
-
 def forest_path2():
     """Second forest path scenario"""
     display_status()
     st.markdown("---")
-
+    
     st.markdown("## Goblin Encounter")
     st.write("""
     You investigate the noise and discover three small goblins rummaging through a pile of abandoned equipment.
     They see you watching them and immediately become hostile, pulling out crude but sharp weapons.
     The largest goblin snarls and points his rusty dagger at you while the others circle around.
     """)
-
+    
     # Different options based on whether player has a weapon
     if st.session_state.has_weapon:
         col1, col2, col3 = st.columns(3)
-
+        
         with col1:
             if st.button("⚔️ Fight with your sword", key="forest_fight", use_container_width=True):
                 if take_damage(20, "goblin fight"):
@@ -298,7 +285,7 @@ def forest_path2():
                     add_to_inventory("💰 Gold coins")
                     st.session_state.game_state = 'forest_path3'
                     st.rerun()
-
+        
         with col2:
             if st.button("🤝 Try to negotiate", key="forest_negotiate", use_container_width=True):
                 save_current_state()
@@ -323,7 +310,7 @@ def forest_path2():
                     else:
                         st.info("You barely manage to back away from the angry goblins.")
                         st.rerun()
-
+        
         with col3:
             if st.button("🏃 Run back", key="forest_run", use_container_width=True):
                 if take_damage(100, "goblin pursuit"):
@@ -331,7 +318,7 @@ def forest_path2():
                     st.rerun()
     else:
         col1, col2 = st.columns(2)
-
+        
         with col1:
             if st.button("🪵 Grab a branch as weapon", key="forest_branch", use_container_width=True):
                 if take_damage(30, "desperate fight"):
@@ -345,19 +332,18 @@ def forest_path2():
                     add_to_inventory("🌲 Sturdy branch")
                     st.session_state.game_state = 'forest_path3'
                     st.rerun()
-
+        
         with col2:
             if st.button("🏃 Run back", key="forest_run2", use_container_width=True):
                 if take_damage(100, "goblin pursuit"):
                     st.error("You trip on a branch running away. The goblins catch up and overwhelm you.")
                     st.rerun()
 
-
 def forest_path3():
     """Third forest path scenario"""
     display_status()
     st.markdown("---")
-
+    
     st.markdown("## Escape to the Shore")
     st.write("""
     After your encounter with the goblins, you continue through the forest and eventually find yourself 
@@ -365,42 +351,41 @@ def forest_path3():
     You see a weathered boat tied to a small wooden dock, and in the horizon a mysterious island with an ancient castle.
     There's also a small cave entrance nearby and what looks like an old fishing hut.
     """)
-
+    
     col1, col2, col3, col4 = st.columns(4)
-
+    
     with col1:
         if st.button("🚤 Take the boat", key="forest_boat", use_container_width=True):
             st.session_state.game_state = 'boat_path2'
             st.rerun()
-
+    
     with col2:
         if st.button("🏊 Swim to the island", key="forest_swim", use_container_width=True):
             if take_damage(100, "shark attack"):
                 st.error("You attempt to swim to the island. Sharks circle and eat you.")
                 st.rerun()
-
+    
     with col3:
         if st.button("🏠 Check the hut", key="forest_hut", use_container_width=True):
             if "🎣 Fishing rod" not in st.session_state.inventory:
                 add_to_inventory("🎣 Fishing rod")
                 add_to_inventory("🍖 Dried fish")
                 heal_player(15)
-                st.success("You found supplies in the abandoned fishing hut! The dried fish restores your energy.")
+                st.success("You found supplies in the abandoned fishing hut! The dried fish restores you�r energy.")
             else:
                 st.info("The hut is empty now.")
             st.rerun()
-
+    
     with col4:
         if st.button("🕳️ Explore cave", key="forest_cave", use_container_width=True):
             st.session_state.game_state = 'hidden_cave'
             st.rerun()
 
-
 def boat_path():
     """Boat path from beach scenario"""
     display_status()
     st.markdown("---")
-
+    
     st.markdown("## Rowing to the Island")
     st.write("""
     You look around for a boat and eventually find an old wooden rowboat pulled up on the sand.
@@ -408,9 +393,9 @@ def boat_path():
     the island grows larger ahead of you. Halfway through your journey, you notice dark shadows circling beneath the boat.
     Sharks! Several large fins break the surface around you.
     """)
-
+    
     col1, col2, col3 = st.columns(3)
-
+    
     with col1:
         if st.button("🏏 Hit them with the oar", key="boat1_hit", use_container_width=True):
             if take_damage(100, "shark retaliation"):
@@ -419,7 +404,7 @@ def boat_path():
                 They damage the hull and you capsize. You become their dinner.
                 """)
                 st.rerun()
-
+    
     with col2:
         if st.button("🚣 Keep rowing quietly", key="boat1_row", use_container_width=True):
             st.success("""
@@ -428,7 +413,7 @@ def boat_path():
             """)
             st.session_state.game_state = 'island_path'
             st.rerun()
-
+    
     with col3:
         if st.button("🍞 Throw food to distract", key="boat1_food", use_container_width=True):
             if "🍞 Bread" in st.session_state.inventory or "🍖 Dried fish" in st.session_state.inventory:
@@ -451,12 +436,11 @@ def boat_path():
                     st.session_state.game_state = 'island_path'
                     st.rerun()
 
-
 def boat_path2():
     """Boat path from forest scenario"""
     display_status()
     st.markdown("---")
-
+    
     st.markdown("## Sailing to Safety")
     st.write("""
     You untie the weathered boat from the dock and push off into the deeper waters.
@@ -464,9 +448,9 @@ def boat_path2():
     As you sail toward the mysterious island, you notice the same dark shadows beneath the water.
     More sharks, but these seem larger and more aggressive than before.
     """)
-
+    
     col1, col2, col3 = st.columns(3)
-
+    
     with col1:
         if st.button("🏏 Hit them with the oar", key="boat2_hit", use_container_width=True):
             if take_damage(100, "shark retaliation"):
@@ -475,7 +459,7 @@ def boat_path2():
                 The larger sharks easily destroy the hull and you don't survive.
                 """)
                 st.rerun()
-
+    
     with col2:
         if st.button("⛵ Use the sail", key="boat2_sail", use_container_width=True):
             st.success("""
@@ -484,7 +468,7 @@ def boat_path2():
             """)
             st.session_state.game_state = 'island_path'
             st.rerun()
-
+    
     with col3:
         if st.button("🎣 Use fishing equipment", key="boat2_fish", use_container_width=True):
             if "🎣 Fishing rod" in st.session_state.inventory:
@@ -503,12 +487,11 @@ def boat_path2():
                     st.session_state.game_state = 'island_path'
                     st.rerun()
 
-
 def island_path():
     """Final island path scenario"""
     display_status()
     st.markdown("---")
-
+    
     st.markdown("## Treasure Island")
     st.write("""
     You successfully reach the mysterious island and pull your boat onto the rocky shore.
@@ -516,39 +499,38 @@ def island_path():
     An imposing castle dominates the center of the island, while a lighthouse stands on the eastern cliff.
     You also notice several caves carved into the rocky coastline and an old stone well near the beach.
     """)
-
+    
     col1, col2, col3, col4 = st.columns(4)
-
+    
     with col1:
         if st.button("🏰 Enter the castle", key="island_castle", use_container_width=True):
             save_current_state()
             st.session_state.game_state = 'castle_path'
             st.rerun()
-
+    
     with col2:
         if st.button("🕳️ Explore the caves", key="island_cave", use_container_width=True):
             save_current_state()
             st.session_state.game_state = 'cave_path'
             st.rerun()
-
+    
     with col3:
         if st.button("🗼 Climb the lighthouse", key="island_lighthouse", use_container_width=True):
             save_current_state()
             st.session_state.game_state = 'lighthouse_path'
             st.rerun()
-
+    
     with col4:
         if st.button("🏺 Examine the well", key="island_well", use_container_width=True):
             save_current_state()
             st.session_state.game_state = 'well_path'
             st.rerun()
 
-
 def castle_path():
     """Castle exploration scenario"""
     display_status()
     st.markdown("---")
-
+    
     st.markdown("## The Ancient Castle")
     st.write("""
     You approach the massive stone castle gates. They creak open as you push them, revealing
@@ -556,13 +538,13 @@ def castle_path():
     You see three ornate doors: a red door with flame motifs, a blue door with water symbols, and a yellow door with sun designs.
     Ancient writing on the wall reads: "Choose wisely, for only one path leads to fortune. The others lead to doom."
     """)
-
+    
     # Special hint if player has the key from lighthouse
     if st.session_state.has_key or "🗝️ Strange key" in st.session_state.inventory:
         st.info("💡 Your strange key glows faintly when you point it toward the yellow door...")
-
+    
     col1, col2, col3, col4 = st.columns(4)
-
+    
     with col1:
         if st.button("🔴 Red Door", key="castle_red", use_container_width=True):
             if take_damage(100, "fire trap"):
@@ -571,16 +553,16 @@ def castle_path():
                 Your adventure ends in ashes.
                 """)
                 st.rerun()
-
+    
     with col2:
         if st.button("🔵 Blue Door", key="castle_blue", use_container_width=True):
             if take_damage(100, "spike pit"):
                 st.error("""
-                You open the blue door and the floor gives way beneath you!
+                You open the blue door and the floor gives way beneath y�ou!
                 You fall into a pit filled with deadly spikes. The trap was perfectly preserved.
                 """)
                 st.rerun()
-
+    
     with col3:
         if st.button("🟡 Yellow Door", key="castle_yellow", use_container_width=True):
             st.success("""
@@ -590,7 +572,7 @@ def castle_path():
             st.session_state.game_won = True
             st.session_state.game_state = 'game_won'
             st.rerun()
-
+    
     with col4:
         if st.button("🔍 Search the hall", key="castle_search", use_container_width=True):
             if "⚱️ Ancient vase" not in st.session_state.inventory:
@@ -602,12 +584,11 @@ def castle_path():
                 st.info("You've already searched this area thoroughly.")
             st.rerun()
 
-
 def cave_path():
     """Cave exploration scenario"""
     display_status()
     st.markdown("---")
-
+    
     st.markdown("## The Dark Cave Network")
     st.write("""
     You enter a network of ancient caves carved into the cliff face. The air is cool and damp,
@@ -615,9 +596,9 @@ def cave_path():
     As your eyes adjust to the darkness, you see passages leading in different directions.
     Strange symbols are carved into the walls, and you notice some glittering minerals.
     """)
-
+    
     col1, col2, col3, col4 = st.columns(4)
-
+    
     with col1:
         if st.button("⬅️ Left passage", key="cave_left", use_container_width=True):
             if take_damage(100, "underground river"):
@@ -626,7 +607,7 @@ def cave_path():
                 The current is too powerful and sweeps you away.
                 """)
                 st.rerun()
-
+    
     with col2:
         if st.button("➡️ Right passage", key="cave_right", use_container_width=True):
             if take_damage(20, "cave exploration"):
@@ -638,12 +619,12 @@ def cave_path():
             else:
                 st.session_state.game_state = 'island_path'
                 st.rerun()
-
+    
     with col3:
         if st.button("⬆️ Climb upward", key="cave_up", use_container_width=True):
             st.session_state.game_state = 'crystal_cave'
             st.rerun()
-
+    
     with col4:
         if st.button("💎 Mine crystals", key="cave_mine", use_container_width=True):
             if "💎 Glowing crystals" not in st.session_state.inventory:
@@ -654,12 +635,11 @@ def cave_path():
                 st.info("You've already mined the best crystals from this area.")
             st.rerun()
 
-
 def lighthouse_path():
     """Lighthouse exploration scenario"""
     display_status()
     st.markdown("---")
-
+    
     st.markdown("## The Ancient Lighthouse")
     st.write("""
     You climb the spiral stone staircase of the weathered lighthouse. Each step echoes in the tower.
@@ -667,9 +647,9 @@ def lighthouse_path():
     An old brass telescope points toward the horizon, and ancient maps cover a wooden table.
     You notice a locked chest and some navigation instruments scattered about.
     """)
-
+    
     col1, col2, col3, col4 = st.columns(4)
-
+    
     with col1:
         if st.button("🗺️ Study the maps", key="lighthouse_map", use_container_width=True):
             if take_damage(10, "exhaustion"):
@@ -683,7 +663,7 @@ def lighthouse_path():
             else:
                 st.session_state.game_state = 'island_path'
                 st.rerun()
-
+    
     with col2:
         if st.button("🔍 Search thoroughly", key="lighthouse_search", use_container_width=True):
             if "🗝️ Lighthouse key" not in st.session_state.inventory:
@@ -697,7 +677,7 @@ def lighthouse_path():
             else:
                 st.info("You've already found everything hidden here.")
             st.rerun()
-
+    
     with col3:
         if st.button("🔭 Use telescope", key="lighthouse_telescope", use_container_width=True):
             st.success("""
@@ -707,7 +687,7 @@ def lighthouse_path():
             add_to_inventory("📍 Secret location")
             st.session_state.game_state = 'secret_cove'
             st.rerun()
-
+    
     with col4:
         if st.button("📦 Open the chest", key="lighthouse_chest", use_container_width=True):
             if st.session_state.has_key and "🗝️ Lighthouse key" in st.session_state.inventory:
@@ -719,21 +699,20 @@ def lighthouse_path():
                 st.warning("The chest is locked tight. You need a key to open it.")
             st.rerun()
 
-
 def hidden_cave():
     """Hidden cave from forest path"""
     display_status()
     st.markdown("---")
-
+    
     st.markdown("## The Hidden Cave")
     st.write("""
     You discover a small cave entrance hidden behind some rocks near the beach.
     Inside, you find evidence of previous visitors - old camping gear and a journal.
     The cave provides shelter and some useful supplies.
     """)
-
+    
     col1, col2 = st.columns(2)
-
+    
     with col1:
         if st.button("📖 Read the journal", key="cave_journal", use_container_width=True):
             add_to_inventory("📖 Explorer's journal")
@@ -743,7 +722,7 @@ def hidden_cave():
             """)
             st.session_state.game_state = 'forest_path3'
             st.rerun()
-
+    
     with col2:
         if st.button("🎒 Take supplies", key="cave_supplies", use_container_width=True):
             add_to_inventory("🕯️ Torch")
@@ -753,28 +732,27 @@ def hidden_cave():
             st.session_state.game_state = 'forest_path3'
             st.rerun()
 
-
 def well_path():
     """Stone well exploration"""
     display_status()
     st.markdown("---")
-
+    
     st.markdown("## The Ancient Well")
     st.write("""
     You examine the old stone well near the beach. It's deep and dark, but you hear the sound of water far below.
     Ancient carvings cover the stones, and there's a rusty bucket attached to a rope.
     The well seems to have been important to whoever lived on this island long ago.
     """)
-
+    
     col1, col2, col3 = st.columns(3)
-
+    
     with col1:
         if st.button("💧 Draw water", key="well_water", use_container_width=True):
             add_to_inventory("💧 Fresh water")
             heal_player(20)
             st.success("The water is surprisingly fresh and pure! You feel much better after drinking.")
             st.rerun()
-
+    
     with col2:
         if st.button("🪙 Drop a coin", key="well_coin", use_container_width=True):
             if "💰 Gold coins" in st.session_state.inventory:
@@ -784,68 +762,66 @@ def well_path():
             else:
                 st.warning("You don't have any coins to drop.")
             st.rerun()
-
+    
     with col3:
         if st.button("↩️ Return to beach", key="well_return", use_container_width=True):
             st.session_state.game_state = 'island_path'
             st.rerun()
 
-
 def crystal_cave():
     """Crystal cave exploration"""
     display_status()
     st.markdown("---")
-
+    
     st.markdown("## The Crystal Cave Chamber")
     st.write("""
     You climb upward through the cave system and discover a magnificent crystal chamber.
     The walls sparkle with natural formations, and a underground spring creates a peaceful pool.
     The crystals seem to pulse with a gentle, healing light.
     """)
-
+    
     col1, col2, col3 = st.columns(3)
-
+    
     with col1:
         if st.button("💎 Harvest crystals", key="crystal_harvest", use_container_width=True):
             add_to_inventory("✨ Healing crystals")
             heal_player(30)
             st.success("The healing crystals restore your energy and vitality!")
             st.rerun()
-
+    
     with col2:
         if st.button("🏊 Bathe in spring", key="crystal_spring", use_container_width=True):
             heal_player(50)
             st.success("The magical spring water heals your wounds and refreshes your spirit!")
             st.rerun()
-
+    
     with col3:
         if st.button("🚪 Find secret exit", key="crystal_exit", use_container_width=True):
             st.info("You discover a hidden passage that leads directly to the castle courtyard!")
             st.session_state.game_state = 'castle_path'
             st.rerun()
 
-
 def secret_cove():
     """Secret cove with shipwreck"""
     display_status()
     st.markdown("---")
-
+    
     st.markdown("## The Hidden Cove")
     st.write("""
     Following the telescope's guidance, you find a hidden cove on the north shore.
     An ancient ship rests in the shallow water, its hull broken but its cargo hold still sealed.
     Treasure chests and gold coins are scattered in the crystal-clear water.
     """)
-
+    
     col1, col2, col3 = st.columns(3)
-
+    
     with col1:
         if st.button("🏊 Swim to wreck", key="cove_swim", use_container_width=True):
             add_to_inventory("⚓ Ship's treasure")
             add_to_inventory("🏴‍☠️ Pirate flag")
             st.success("You swim to the wreck and recover amazing pirate treasure!")
             st.rerun()
-
+    
     with col2:
         if st.button("🎣 Fish for treasure", key="cove_fish", use_container_width=True):
             if "🎣 Fishing rod" in st.session_state.inventory:
@@ -854,7 +830,7 @@ def secret_cove():
             else:
                 st.warning("You need fishing equipment to safely retrieve the underwater treasure.")
             st.rerun()
-
+    
     with col3:
         if st.button("🏆 Claim victory", key="cove_victory", use_container_width=True):
             st.success("You've found enough treasure to claim victory in your adventure!")
@@ -862,27 +838,24 @@ def secret_cove():
             st.session_state.game_state = 'game_won'
             st.rerun()
 
-
 def game_over_screen():
     """Display game over screen"""
     st.markdown("## 💀 Game Over!")
     st.write("You died! Better luck next time.")
-
+    
     if st.button("🔄 Play Again", key="restart_dead", use_container_width=True):
         reset_game()
         st.rerun()
-
 
 def game_won_screen():
     """Display victory screen"""
     st.markdown("## 🏆 Victory!")
     st.balloons()
     st.write("🎉 **Congratulations!** You have successfully found the treasure and completed your adventure!")
-
+    
     if st.button("🔄 Play Again", key="restart_won", use_container_width=True):
         reset_game()
         st.rerun()
-
 
 def main():
     """Main application function"""
@@ -891,18 +864,18 @@ def main():
         page_icon="🏴‍☠️",
         layout="centered"
     )
-
+    
     # Initialize game state
     initialize_game_state()
-
+    
     # Display title and ASCII art
     st.title("🏴‍☠️ Treasure Island Adventure")
     st.code(TREASURE_ISLAND_ART, language=None)
     st.markdown("**Welcome to Treasure Island! Survive and find the long lost treasure**")
-
+    
     # Add some spacing
     st.markdown("---")
-
+    
     # Game state routing
     if st.session_state.game_state == 'start' or st.session_state.game_state == 'crossroad':
         crossroad()
@@ -938,30 +911,29 @@ def main():
         game_over_screen()
     elif st.session_state.game_state == 'game_won':
         game_won_screen()
-
+    
     # Add navigation buttons at the bottom (always available)
     st.markdown("---")
     col1, col2, col3 = st.columns([1, 1, 1])
-
+    
     with col1:
-        if st.button("⬅️ Go Back", key="go_back_main",
-                     disabled=len(st.session_state.previous_states) == 0,
-                     use_container_width=True):
+        if st.button("⬅️ Go Back", key="go_back_main", 
+                    disabled=len(st.session_state.previous_states) == 0,
+                    use_container_width=True):
             if go_back():
                 st.rerun()
-
+    
     with col2:
         if st.button("🔄 Restart Game", key="restart_main", use_container_width=True):
             reset_game()
             st.rerun()
-
+    
     with col3:
         # Show number of steps that can be undone
         if len(st.session_state.previous_states) > 0:
             st.write(f"📍 Can go back {len(st.session_state.previous_states)} step(s)")
         else:
             st.write("📍 No previous steps")
-
 
 if __name__ == "__main__":
     main()

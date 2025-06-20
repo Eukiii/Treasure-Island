@@ -142,14 +142,13 @@ def crossroad():
     """)
 
     # First visit - let player search the campsite
-
-    # Initialize session state
-	if 'has_searched_camp' not in st.session_state:
-		st.session_state.has_searched_camp = False
+    #Intialize session state
+    if 'has_searched_camp' not in st.session_state:
+        st.session_state.has_searched_camp = False
     if len(st.session_state.inventory) == 0:
         st.info("💡 You notice some items scattered around the old campsite...")
-	else:
-		st.info("✅ You found some food and water! You feel a bit better after eating.")
+    else:
+        st.info("✅ You found some food and water! You feel a bit better after eating.")
 
         col1, col2, col3 = st.columns(3)
 
@@ -158,8 +157,8 @@ def crossroad():
                 add_to_inventory("🍞 Bread")
                 add_to_inventory("💧 Water bottle")
                 heal_player(10)
-                st.session_state.has_searched_camp = True  #Sets the flag
-                st.rerun()  #Triggers UI refresh with updated message
+                st.session_state.has_searched_camp = True  #Set the flag
+                st.rerun()  #Trigger UI refresh with updated message
 
         with col2:
             if st.button("🡸 Go Left", key="crossroad_left", use_container_width=True):

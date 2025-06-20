@@ -84,6 +84,7 @@ def go_back():
         st.session_state.has_weapon = previous_state['has_weapon']
         st.session_state.has_key = previous_state['has_key']
         st.session_state.has_map = previous_state['has_map']
+        st.session_state.has_searched_camp = previous_state['has_searched_camp']
         return True
     return False
 
@@ -372,7 +373,7 @@ def forest_path3():
                 add_to_inventory("🎣 Fishing rod")
                 add_to_inventory("🍖 Dried fish")
                 heal_player(15)
-                st.success("You found supplies in the abandoned fishing hut! The dried fish restores you�r energy.")
+                st.success("You found supplies in the abandoned fishing hut! The dried fish restores your energy.")
             else:
                 st.info("The hut is empty now.")
             st.rerun()
@@ -559,7 +560,7 @@ def castle_path():
         if st.button("🔵 Blue Door", key="castle_blue", use_container_width=True):
             if take_damage(100, "spike pit"):
                 st.error("""
-                You open the blue door and the floor gives way beneath y�ou!
+                You open the blue door and the floor gives way beneath you!
                 You fall into a pit filled with deadly spikes. The trap was perfectly preserved.
                 """)
                 st.rerun()

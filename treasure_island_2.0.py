@@ -141,10 +141,11 @@ def crossroad():
     You find a path and walk towards it and come to a crossroad.
     """)
 
-    # First visit - let player search the campsite
-    #Intialize session state
-    if 'has_searched_camp' not in st.session_state:
+    # Initialize session state
+	if 'has_searched_camp' not in st.session_state:
         st.session_state.has_searched_camp = False
+		
+    # First visit - let player search the campsite
     if len(st.session_state.inventory) == 0:
         st.info("💡 You notice some items scattered around the old campsite...")
         
@@ -155,7 +156,7 @@ def crossroad():
                 add_to_inventory("🍞 Bread")
                 add_to_inventory("💧 Water bottle")
                 heal_player(10)
-                st.session_state.has_searched_camp = True  #Set the flag
+                st.session_state.has_searched_camp = True  #Set the flag to show updated message
                 st.rerun()  #Trigger UI refresh with updated message
 
         with col2:
@@ -170,8 +171,9 @@ def crossroad():
                 st.session_state.game_state = 'forest_path1'
                 st.rerun()
     else:
-        # Already searched - just show direction choices
+        # Player already searched - just show directions
         st.info("✅ You found some food and water! You feel a bit better after eating.")
+		
         col1, col2 = st.columns(2)
 
         with col1:

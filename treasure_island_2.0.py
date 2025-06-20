@@ -43,9 +43,8 @@ def initialize_game_state():
         st.session_state.has_map = False
     if 'previous_states' not in st.session_state:
         st.session_state.previous_states = []
-	if 'has_searched_camp' not in st.session_state:
+    if 'has_searched_camp' not in st.session_state:
         st.session_state.has_searched_camp = False
-
 
 def reset_game():
     """Reset the game to initial state"""

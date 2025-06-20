@@ -43,6 +43,8 @@ def initialize_game_state():
         st.session_state.has_map = False
     if 'previous_states' not in st.session_state:
         st.session_state.previous_states = []
+	if 'has_searched_camp' not in st.session_state:
+        st.session_state.has_searched_camp = False
 
 
 def reset_game():
@@ -56,6 +58,7 @@ def reset_game():
     st.session_state.has_key = False
     st.session_state.has_map = False
     st.session_state.previous_states = []
+	st.session_state.has_searched_camp = False
 
 
 def save_current_state():
@@ -141,12 +144,10 @@ def crossroad():
     You find a path and walk towards it and come to a crossroad.
     """)
 
-    # Initialize session state
-	if 'has_searched_camp' not in st.session_state:
-        st.session_state.has_searched_camp = False
-		
     # First visit - let player search the campsite
     if len(st.session_state.inventory) == 0:
+	# Check if player has searched campsite
+	if not st.session.has_seached_camp:
         st.info("💡 You notice some items scattered around the old campsite...")
         
         col1, col2, col3 = st.columns(3)
@@ -171,7 +172,7 @@ def crossroad():
                 st.session_state.game_state = 'forest_path1'
                 st.rerun()
     else:
-        # Player already searched - just show directions
+        # Player already searched - show confirmation message and direction
         st.info("✅ You found some food and water! You feel a bit better after eating.")
 		
         col1, col2 = st.columns(2)

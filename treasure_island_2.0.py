@@ -147,9 +147,7 @@ def crossroad():
         st.session_state.has_searched_camp = False
     if len(st.session_state.inventory) == 0:
         st.info("💡 You notice some items scattered around the old campsite...")
-    else:
-        st.info("✅ You found some food and water! You feel a bit better after eating.")
-
+        
         col1, col2, col3 = st.columns(3)
 
         with col1:
@@ -173,6 +171,7 @@ def crossroad():
                 st.rerun()
     else:
         # Already searched - just show direction choices
+        st.info("✅ You found some food and water! You feel a bit better after eating.")
         col1, col2 = st.columns(2)
 
         with col1:

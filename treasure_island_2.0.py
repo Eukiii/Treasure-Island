@@ -67,7 +67,7 @@ def save_current_state():
         'has_weapon': st.session_state.has_weapon,
         'has_key': st.session_state.has_key,
         'has_map': st.session_state.has_map,
-		'has_searched_camp': st.session_state.has_searched_camp
+        'has_searched_camp': st.session_state.has_searched_camp
     }
     st.session_state.previous_states.append(current_state)
     # Keep only last 10 states to prevent memory issues

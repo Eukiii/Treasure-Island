@@ -153,8 +153,8 @@ def crossroad():
                 add_to_inventory("💧 Water bottle")
                 heal_player(10)
                 st.info("You found some food and water! You feel a bit better after eating.")
-                      st.write(st.info)
                 st.rerun()
+        st.write(st.info)
 
         with col2:
             if st.button("🡸 Go Left", key="crossroad_left", use_container_width=True):

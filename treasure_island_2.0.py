@@ -1,4 +1,5 @@
 import streamlit as st
+import random
 
 # ASCII Art for the treasure island
 TREASURE_ISLAND_ART = '''*******************************************************************************
@@ -44,6 +45,12 @@ def initialize_game_state():
         st.session_state.previous_states = []
     if 'has_searched_camp' not in st.session_state:
         st.session_state.has_searched_camp = False
+    if 'goblin_health' not in st.session_state:
+        st.session_state.goblin_health = 20
+    if 'in_combat' not in st.session_state:
+        st.session_state.in_combat = False
+    if 'combat_log' not in st.session_state:
+        st.session_state.combat_log = []
 
 def reset_game():
     """Reset the game to initial state"""
@@ -57,6 +64,9 @@ def reset_game():
     st.session_state.has_map = False
     st.session_state.previous_states = []
     st.session_state.has_searched_camp = False
+    st.session_state.goblin_health = 20
+    st.session_state.in_combat = False
+    st.session_state.combat_log = []
 
 def save_current_state():
     """Save current game state to history"""
@@ -124,6 +134,54 @@ def heal_player(amount):
     """Heal the player"""
     st.session_state.health = min(100, st.session_state.health + amount)
     st.success(f"Healed for {amount} health!")
+
+def get_weapon_damage():
+    """Get player's weapon damage based on inventory"""
+    if "🗡️ Rusty sword" in st.session_state.inventory:
+        return 10
+    elif "🌲 Sturdy branch" in st.session_state.inventory:
+        return 5
+    else:
+        return 0
+
+def start_combat():
+    """Initialize combat state"""
+    st.session_state.in_combat = True
+    st.session_state.goblin_health = 20
+    st.session_state.combat_log = []
+
+def end_combat():
+    """End combat and clean up"""
+    st.session_state.in_combat = False
+    st.session_state.combat_log = []
+
+def goblin_attack():
+    """Goblin attacks player"""
+    damage = 10
+    st.session_state.health -= damage
+    st.session_state.combat_log.append(f"🗡️ Goblin attacks you for {damage} damage!")
+    
+    if st.session_state.health <= 0:
+        st.session_state.health = 0
+        st.session_state.game_over = True
+        st.session_state.game_state = 'game_over'
+        return True
+    return False
+
+def player_attack():
+    """Player attacks goblin"""
+    weapon_damage = get_weapon_damage()
+    if weapon_damage > 0:
+        st.session_state.goblin_health -= weapon_damage
+        weapon_name = "rusty sword" if weapon_damage == 10 else "sturdy branch"
+        st.session_state.combat_log.append(f"⚔️ You hit the goblin with your {weapon_name} for {weapon_damage} damage!")
+        
+        if st.session_state.goblin_health <= 0:
+            st.session_state.combat_log.append("🎉 You defeated the goblin!")
+            return True
+        else:
+            st.session_state.combat_log.append(f"🩸 Goblin health: {st.session_state.goblin_health}/20")
+    return False
 
 def crossroad():
     """Starting point of the game"""
@@ -262,84 +320,123 @@ def forest_path2():
     display_status()
     st.markdown("---")
     
-    st.markdown("## Goblin Encounter")
-    st.write("""
-    You investigate the noise and discover three small goblins rummaging through a pile of abandoned equipment.
-    They see you watching them and immediately become hostile, pulling out crude but sharp weapons.
-    The largest goblin snarls and points his rusty dagger at you while the others circle around.
-    """)
-    
-    # Different options based on whether player has a weapon
-    if st.session_state.has_weapon:
-        col1, col2, col3 = st.columns(3)
+    # Check if currently in combat
+    if st.session_state.in_combat:
+        st.markdown("## ⚔️ Combat with Goblin")
         
-        with col1:
-            if st.button("⚔️ Fight with your sword", key="forest_fight", use_container_width=True):
-                if take_damage(20, "goblin fight"):
-                    st.error("The goblins overwhelm you despite your weapon!")
-                    st.rerun()
-                else:
-                    st.success("""
-                    You brandish your rusty sword! The goblins hesitate, then attack together.
-                    After a fierce battle, you manage to defeat them, though you're wounded.
-                    You find some coins among their belongings.
-                    """)
-                    add_to_inventory("💰 Gold coins")
-                    st.session_state.game_state = 'forest_path3'
-                    st.rerun()
+        # Display goblin health
+        goblin_health_bar = "🟢" if st.session_state.goblin_health > 15 else "🟡" if st.session_state.goblin_health > 5 else "🔴"
+        st.markdown(f"**Goblin Health:** {goblin_health_bar} {st.session_state.goblin_health}/20")
         
-        with col2:
-            if st.button("🤝 Try to negotiate", key="forest_negotiate", use_container_width=True):
-                save_current_state()
-                if "🍞 Bread" in st.session_state.inventory:
-                    st.info("""
-                    You slowly raise your hands and offer them some of your supplies.
-                    The goblins seem intrigued by your bread and accept the trade peacefully.
-                    """)
-                    st.session_state.inventory.remove("🍞 Bread")
-                    add_to_inventory("🗝️ Strange key")
-                    st.session_state.has_key = True
-                    st.session_state.game_state = 'forest_path3'
-                    st.rerun()
-                else:
-                    st.warning("""
-                    You try to negotiate but have nothing to offer the goblins.
-                    They sneer at your empty hands and become more aggressive!
-                    """)
-                    if take_damage(15, "failed negotiation"):
-                        st.error("The goblins attack you for wasting their time!")
-                        st.rerun()
-                    else:
-                        st.info("You barely manage to back away from the angry goblins.")
-                        st.rerun()
+        # Display combat log
+        if st.session_state.combat_log:
+            st.markdown("### Combat Log:")
+            for log_entry in st.session_state.combat_log[-3:]:  # Show last 3 entries
+                st.write(log_entry)
         
-        with col3:
-            if st.button("🏃 Run back", key="forest_run", use_container_width=True):
-                if take_damage(100, "goblin pursuit"):
-                    st.error("You trip on a branch running away. The goblins catch up and overwhelm you.")
-                    st.rerun()
-    else:
+        # Combat actions
         col1, col2 = st.columns(2)
         
         with col1:
-            if st.button("🪵 Grab a branch as weapon", key="forest_branch", use_container_width=True):
-                if take_damage(30, "desperate fight"):
-                    st.error("You grab a branch but the goblins are too strong!")
-                    st.rerun()
-                else:
-                    st.warning("""
-                    You quickly grab a sturdy branch and swing wildly at the goblins.
-                    You manage to scare them off but get scratched up in the process.
-                    """)
-                    add_to_inventory("🌲 Sturdy branch")
+            weapon_damage = get_weapon_damage()
+            weapon_name = "rusty sword" if weapon_damage == 10 else "sturdy branch" if weapon_damage == 5 else "fists"
+            if st.button(f"⚔️ Attack with {weapon_name} ({weapon_damage} damage)", key="combat_attack", use_container_width=True):
+                # Player attacks first
+                goblin_defeated = player_attack()
+                
+                if goblin_defeated:
+                    st.success("You defeated the goblin! You find some coins among their belongings.")
+                    add_to_inventory("💰 Gold coins")
+                    end_combat()
                     st.session_state.game_state = 'forest_path3'
                     st.rerun()
+                else:
+                    # Goblin attacks back
+                    player_died = goblin_attack()
+                    if player_died:
+                        st.error("The goblin defeats you!")
+                        st.rerun()
+                    else:
+                        st.rerun()
         
         with col2:
-            if st.button("🏃 Run back", key="forest_run2", use_container_width=True):
-                if take_damage(100, "goblin pursuit"):
-                    st.error("You trip on a branch running away. The goblins catch up and overwhelm you.")
+            if st.button("🏃 Try to escape", key="combat_escape", use_container_width=True):
+                if take_damage(15, "escape attempt"):
+                    st.error("The goblin strikes you as you try to flee!")
                     st.rerun()
+                else:
+                    st.warning("You manage to escape the combat, but take some damage in the process!")
+                    end_combat()
+                    st.rerun()
+    
+    else:
+        # Normal goblin encounter (not in combat yet)
+        st.markdown("## Goblin Encounter")
+        st.write("""
+        You investigate the noise and discover a fierce goblin rummaging through a pile of abandoned equipment.
+        It sees you watching and immediately becomes hostile, pulling out a crude but sharp weapon.
+        The goblin snarls and points its rusty blade at you menacingly.
+        """)
+        
+        # Different options based on whether player has a weapon
+        if st.session_state.has_weapon or get_weapon_damage() > 0:
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                weapon_damage = get_weapon_damage()
+                weapon_name = "rusty sword" if weapon_damage == 10 else "sturdy branch"
+                if st.button(f"⚔️ Fight with {weapon_name}", key="forest_fight", use_container_width=True):
+                    save_current_state()
+                    start_combat()
+                    st.info(f"Combat begins! You ready your {weapon_name} for battle.")
+                    st.rerun()
+            
+            with col2:
+                if st.button("🤝 Try to negotiate", key="forest_negotiate", use_container_width=True):
+                    save_current_state()
+                    if "🍞 Bread" in st.session_state.inventory:
+                        st.info("""
+                        You slowly raise your hands and offer the goblin your bread.
+                        The goblin seems intrigued by the food and accepts the trade peacefully.
+                        """)
+                        st.session_state.inventory.remove("🍞 Bread")
+                        add_to_inventory("🗝️ Strange key")
+                        st.session_state.has_key = True
+                        st.session_state.game_state = 'forest_path3'
+                        st.rerun()
+                    else:
+                        st.warning("""
+                        You try to negotiate but have nothing to offer the goblin.
+                        It sneers at your empty hands and becomes more aggressive!
+                        """)
+                        if take_damage(15, "failed negotiation"):
+                            st.error("The goblin attacks you for wasting its time!")
+                            st.rerun()
+                        else:
+                            st.info("You barely manage to back away from the angry goblin.")
+                            st.rerun()
+            
+            with col3:
+                if st.button("🏃 Run back", key="forest_run", use_container_width=True):
+                    if take_damage(100, "goblin pursuit"):
+                        st.error("You trip on a branch running away. The goblin catches up and overwhelms you.")
+                        st.rerun()
+        else:
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                if st.button("🪵 Grab a branch as weapon", key="forest_branch", use_container_width=True):
+                    save_current_state()
+                    add_to_inventory("🌲 Sturdy branch")
+                    start_combat()
+                    st.warning("You quickly grab a sturdy branch! The goblin attacks as you arm yourself.")
+                    st.rerun()
+            
+            with col2:
+                if st.button("🏃 Run back", key="forest_run2", use_container_width=True):
+                    if take_damage(100, "goblin pursuit"):
+                        st.error("You trip on a branch running away. The goblin catches up and overwhelms you.")
+                        st.rerun()
 
 def forest_path3():
     """Third forest path scenario"""
@@ -400,12 +497,26 @@ def boat_path():
     
     with col1:
         if st.button("🏏 Hit them with the oar", key="boat1_hit", use_container_width=True):
-            if take_damage(100, "shark retaliation"):
-                st.error("""
-                The sharks took offense to being hit and attack the boat in fury.
-                They damage the hull and you capsize. You become their dinner.
+            save_current_state()
+            # 50% chance of success or instant death
+            if random.choice([True, False]):
+                st.success("""
+                You swing the oar with all your might! The sharks are startled by the splashing
+                and aggressive movement. They quickly swim away, intimidated by your bold display.
+                You successfully scare them off and make it safely to the island!
                 """)
-                st.rerun()
+                
+                # Add button to continue to island
+                if st.button("🏝️ Continue to Island", key="boat1_success_continue", use_container_width=True):
+                    st.session_state.game_state = 'island_path'
+                    st.rerun()
+            else:
+                if take_damage(100, "shark retaliation"):
+                    st.error("""
+                    The sharks took offense to being hit and attack the boat in fury.
+                    They damage the hull and you capsize. You become their dinner.
+                    """)
+                    st.rerun()
     
     with col2:
         if st.button("🚣 Keep rowing quietly", key="boat1_row", use_container_width=True):
@@ -455,12 +566,26 @@ def boat_path2():
     
     with col1:
         if st.button("🏏 Hit them with the oar", key="boat2_hit", use_container_width=True):
-            if take_damage(100, "shark retaliation"):
-                st.error("""
-                The sharks attack the boat in fury after being hit.
-                The larger sharks easily destroy the hull and you don't survive.
+            save_current_state()
+            # 50% chance of success or instant death
+            if random.choice([True, False]):
+                st.success("""
+                You swing the oar powerfully at the larger sharks! Despite their size, they're
+                surprised by your fearless attack. The aggressive splashing scares them away
+                and you successfully make it to the island unharmed!
                 """)
-                st.rerun()
+                
+                # Add button to continue to island
+                if st.button("🏝️ Continue to Island", key="boat2_success_continue", use_container_width=True):
+                    st.session_state.game_state = 'island_path'
+                    st.rerun()
+            else:
+                if take_damage(100, "shark retaliation"):
+                    st.error("""
+                    The sharks attack the boat in fury after being hit.
+                    The larger sharks easily destroy the hull and you don't survive.
+                    """)
+                    st.rerun()
     
     with col2:
         if st.button("⛵ Use the sail", key="boat2_sail", use_container_width=True):
